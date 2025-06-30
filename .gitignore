@@ -1,1 +1,17 @@
-'venv/'
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# PyCharm
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
