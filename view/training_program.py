@@ -8,6 +8,7 @@ from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.textfield import MDTextField
 
 from model.data import session
+from model.storage import save_session_to_file
 
 
 class TrainingProgramScreen(MDScreen):
@@ -84,3 +85,6 @@ class TrainingProgramScreen(MDScreen):
     def save_session(self, instance):
         print(f'Тренировка сохранена: {session}')
 
+    def save_session(self, instance):
+        save_session_to_file()
+        self.refresh_list()
