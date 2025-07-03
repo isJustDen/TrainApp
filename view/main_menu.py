@@ -1,4 +1,5 @@
 # ФАЙЛ main_menu.py
+
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.label import MDLabel
@@ -10,14 +11,14 @@ class MainMenuScreen(MDScreen):
 
         layout = MDBoxLayout(orientation = 'vertical', spacing = 20, padding =20)
 
-        layout.add_widget(MDLabel(text = 'Welcome to Training', halign = 'center', font_style = 'H5'))
+        layout.add_widget(MDLabel(text = 'Добро пожаловать на тренировку!', halign = 'center', font_style = 'H5'))
 
-        start_button = MDRaisedButton(text = 'Start training', pos_hint={'center_x' : 0.5})
+        start_button = MDRaisedButton(text = 'Начать тренировку', pos_hint={'center_x' : 0.5})
         start_button.bind(on_release=self.go_to_training_type)
         layout.add_widget(start_button)
 
-        layout.add_widget(MDRaisedButton(text='History', pos_hint ={'center_x': 0.5}))
-        layout.add_widget(MDRaisedButton(text = 'Settings', pos_hint = {'center_x':0.5}))
+        layout.add_widget(MDRaisedButton(text='История', pos_hint ={'center_x': 0.5}))
+        layout.add_widget(MDRaisedButton(text = 'Настройки', pos_hint = {'center_x':0.5}))
 
         self.add_widget(layout)
 
