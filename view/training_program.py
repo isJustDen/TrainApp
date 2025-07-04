@@ -84,7 +84,5 @@ class TrainingProgramScreen(MDScreen):
 
     def save_session(self, instance):
         print(f'Тренировка сохранена: {session}')
-
-    def save_session(self, instance):
         save_session_to_file()
         self.refresh_list()

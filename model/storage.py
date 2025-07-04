@@ -1,3 +1,5 @@
+#файл storage.py
+
 import json
 import os
 from datetime import datetime
@@ -32,3 +34,9 @@ def save_session_to_file():
 
     except Exception as e:
         print(f"❌ Ошибка при сохранении: {e}")
+
+def load_all_sessions():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return []

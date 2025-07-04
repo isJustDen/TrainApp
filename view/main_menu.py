@@ -17,7 +17,12 @@ class MainMenuScreen(MDScreen):
         start_button.bind(on_release=self.go_to_training_type)
         layout.add_widget(start_button)
 
-        layout.add_widget(MDRaisedButton(text='История', pos_hint ={'center_x': 0.5}))
+        history_btn = MDRaisedButton(text='История', pos_hint ={'center_x': 0.5})
+        history_btn.bind(on_release = self.go_to_history)
+        layout.add_widget(history_btn)
+
+
+
         layout.add_widget(MDRaisedButton(text = 'Настройки', pos_hint = {'center_x':0.5}))
 
         self.add_widget(layout)
@@ -25,3 +30,5 @@ class MainMenuScreen(MDScreen):
     def go_to_training_type(self, instance):
         self.manager.current = 'training_type'
 
+    def go_to_history(self, instance):
+        self.manager.current = 'training_history'

@@ -1,4 +1,5 @@
 # ФАЙЛ main.py
+
 from kivymd.app import MDApp
 from controller.screen_manager import create_screen_manager
 

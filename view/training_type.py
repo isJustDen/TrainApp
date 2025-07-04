@@ -1,4 +1,4 @@
-# ФАЙЛ training_type
+# ФАЙЛ training_type.py
 
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
