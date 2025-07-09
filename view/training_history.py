@@ -2,8 +2,9 @@
 from types import NoneType
 
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.button import MDRaisedButton, MDFlatButton
 from kivymd.uix.button.button import theme_text_color_options
+from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.tab.tab import MDTabsScrollView
@@ -76,10 +77,34 @@ class TrainingHistoryScreen(MDScreen):
             else:
                  text += '- Нет упражнений\n'
 
-                # Создаем элемент списка
 
-            item_label = MDLabel(text = text.strip(),halign = 'left',theme_text_color = 'Primary',size_hint_y = None,height = 100 if exercises else 40)
-            self.history_list.add_widget(item_label)
+            card = MDCard(orientation = 'vertical', padding = 10, size_hint_y = None, height = 100 if exercises  else 60 )
+            label = MDLabel(text = text.strip(), halign = 'left', theme_text_color = 'Primary')
+
+            repeat_btn = MDFlatButton(text = 'Повторить', pos_hint = {'right': 1})
+            repeat_btn.bind(on_release = lambda btn , data = session_data: self.repeat_session(data))
+
+            card.add_widget(label)
+            card.add_widget(repeat_btn)
+
+            self.history_list.add_widget(card)
+
+            #ЗАМЕНА _label = MDLabel(text = text.strip(),halign = 'left',theme_text_color = 'Primary',size_hint_y = None,height = 100 if exercises else 40)
+            #ЗАМЕНА self.history_list.add_widget(item_label)
+
+    def repeat_session(self, data):
+        """Загружает старую тренировку и переходит на экран повторения"""
+        session.reset()
+        session.set_type(data.get("type"))
+
+        for ex in data.get('exericses', []):
+            name = ex.get('name', 'Без названия')
+            sets = ex.get('sets', '?')
+            reps = ex.get('reps', '?')
+            session.add_exercise(name, reps, sets)
+
+        print(f"🔁 Повторяем тренировку: {session}")
+        self.manager.current = 'training_program'
 
     def go_back(self, instance):
         """Возврат в главное меню"""

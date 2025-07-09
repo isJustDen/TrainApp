@@ -50,6 +50,10 @@ class TrainingProgramScreen(MDScreen):
         save_btn.bind(on_release = self.save_session)
         self.main_layout.add_widget(save_btn)
 
+        back_btn = MDRaisedButton (text = 'Назад к истории', pos_hint = {'center_x': 0.5})
+        back_btn.bind(on_release = self.go_back)
+        self.main_layout.add_widget(back_btn)
+
         self.add_widget(self.main_layout)
 
     def on_pre_enter(self, *args):
@@ -86,3 +90,6 @@ class TrainingProgramScreen(MDScreen):
         print(f'Тренировка сохранена: {session}')
         save_session_to_file()
         self.refresh_list()
+
+    def go_back(self, instance):
+        self.manager.current  = 'training_history'
