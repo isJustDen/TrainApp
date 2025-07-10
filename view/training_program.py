@@ -10,7 +10,7 @@ from kivymd.uix.textfield import MDTextField
 from model.data import session
 from model.storage import save_session_to_file
 
-
+#**********************************************************************************************************************#
 class TrainingProgramScreen(MDScreen):
     def __init__ (self, **kwargs):
         super().__init__(**kwargs)

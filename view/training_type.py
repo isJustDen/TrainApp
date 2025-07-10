@@ -7,7 +7,7 @@ from kivymd.uix.label import MDLabel
 
 from model.data import session
 
-
+#**********************************************************************************************************************#
 class TrainingTypeScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

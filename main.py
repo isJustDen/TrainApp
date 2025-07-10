@@ -2,8 +2,8 @@
 
 from kivymd.app import MDApp
 from controller.screen_manager import create_screen_manager
-
-
+#----------------------------------------------------------------------------------------------------------------------#
+#Класс для запуска приложения
 class TrainApp(MDApp):
     def build(self):
         self.title = 'Тренировки'

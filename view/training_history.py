@@ -1,4 +1,6 @@
 #файл training_history,py
+import json
+import os.path
 from types import NoneType
 
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -12,11 +14,11 @@ from kivymd.uix.tab.tab import MDTabsScrollView
 from model.data import session
 from model.storage import load_all_sessions
 
-
+#**********************************************************************************************************************#
 class TrainingHistoryScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
+        # -------------------------------------------------------------------------------------------------------------№
         # Основной контейнер для всех элементов экрана
         self.layout = MDBoxLayout(orientation = 'vertical', spacing = 10, padding = 20)
 
@@ -77,35 +79,68 @@ class TrainingHistoryScreen(MDScreen):
             else:
                  text += '- Нет упражнений\n'
 
-
+            ##Отображает основную информацию: дату, тип тренировки и список упражнений для повтора тренировки или удаления
             card = MDCard(orientation = 'vertical', padding = 10, size_hint_y = None, height = 100 if exercises  else 60 )
             label = MDLabel(text = text.strip(), halign = 'left', theme_text_color = 'Primary')
 
             repeat_btn = MDFlatButton(text = 'Повторить', pos_hint = {'right': 1})
             repeat_btn.bind(on_release = lambda btn , data = session_data: self.repeat_session(data))
 
+            delete_btn = MDFlatButton(text = 'Удалить', pos_hint = {'right': 1})
+            delete_btn.bind(on_release = lambda btn, data = session_data: self.delete_session(data))
+
+            btn_box = MDBoxLayout(orientation = 'horizontal', size_hint_y = None, height = 40, spacing = 10, padding = 10)
+            btn_box.add_widget(repeat_btn)
+            btn_box.add_widget(delete_btn)
+
             card.add_widget(label)
-            card.add_widget(repeat_btn)
+            card.add_widget(btn_box)
 
             self.history_list.add_widget(card)
 
-            #ЗАМЕНА _label = MDLabel(text = text.strip(),halign = 'left',theme_text_color = 'Primary',size_hint_y = None,height = 100 if exercises else 40)
-            #ЗАМЕНА self.history_list.add_widget(item_label)
-
+    #Логика для повторения уже существующей тренировки
     def repeat_session(self, data):
         """Загружает старую тренировку и переходит на экран повторения"""
         session.reset()
         session.set_type(data.get("type"))
 
-        for ex in data.get('exericses', []):
+        for ex in data.get('exercises', []):
             name = ex.get('name', 'Без названия')
-            sets = ex.get('sets', '?')
-            reps = ex.get('reps', '?')
+            sets = ex.get('sets', 0)
+            reps = ex.get('reps', 0)
             session.add_exercise(name, reps, sets)
 
         print(f"🔁 Повторяем тренировку: {session}")
         self.manager.current = 'training_program'
 
+    # Логика для возврата домой(главное меню)
     def go_back(self, instance):
         """Возврат в главное меню"""
         self.manager.current = 'main_menu'
+
+    def delete_session(self, data_to_delete):
+        """Удаляет тренировку из истории и обновляет экран"""
+        path = 'data/training_history.json'
+        if not os.path.exists(path):
+            print("❌ Файл истории не найден.")
+            return
+
+        try:
+            # Читаем файл один раз
+            with open(path, 'r', encoding='utf-8') as f:
+                # Удаляем по полному совпадению структуры
+                all_sessions = json.load(f)
+
+            # Фильтруем тренировки
+            updated_sessions = [s for s in all_sessions if s != data_to_delete]
+
+            # Записываем обратно
+            with open(path, 'w', encoding='utf-8') as f:
+                json.dump(updated_sessions, f, ensure_ascii=False, indent=4)
+
+            print("✅Тренировка удалена")
+            self.refresh_history()
+
+        except Exception as e:
+            print(f"❌Ошибка при удалении: {e}")
+

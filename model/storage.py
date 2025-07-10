@@ -4,6 +4,7 @@ import json
 import os
 from datetime import datetime
 from model.data import session
+#**********************************************************************************************************************#
 
 # 📁 Папка для хранения данны
 DATA_FILE = 'data/training_history.json'
