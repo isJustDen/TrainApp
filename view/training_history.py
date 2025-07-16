@@ -80,7 +80,9 @@ class TrainingHistoryScreen(MDScreen):
                  text += '- Нет упражнений\n'
 
             ##Отображает основную информацию: дату, тип тренировки и список упражнений для повтора тренировки или удаления
-            card = MDCard(orientation = 'vertical', padding = 10, size_hint_y = None, height = 100 if exercises  else 60 )
+            height = 80 +len(exercises) * 30 ## Динамический расчет высоты
+
+            card = MDCard(orientation = 'vertical', padding = 10, size_hint_y = None, height = height if exercises  else 60 )
             label = MDLabel(text = text.strip(), halign = 'left', theme_text_color = 'Primary')
 
             repeat_btn = MDFlatButton(text = 'Повторить', pos_hint = {'right': 1})

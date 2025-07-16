@@ -61,12 +61,12 @@ class TrainingStatsScreen(MDScreen):
                 stats[date_str] += sets
 
             # Сортировка по дате (свежие сверху)
-            for data in sorted(stats.keys(), reverse = True):
-                total_sets = stats[data]
-                self.stats_box.add_widget(MDLabel(text = f'{data}: {total_sets} подходов',
-                                                  halign = 'left',
-                                                  theme_text_color = 'Primary'
-                ))
+        for data in sorted(stats.keys(), reverse = True):
+            total_sets = stats[data]
+            self.stats_box.add_widget(MDLabel(text = f'{data}: {total_sets} подходов',
+                                              halign = 'left',
+                                              theme_text_color = 'Primary'
+            ))
 
     def go_back(self, instance):
         '''Возврат на главное меню'''

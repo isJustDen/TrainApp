@@ -33,6 +33,10 @@ class MainMenuScreen(MDScreen):
         stats_button.bind(on_release = self.go_to_stats)
         layout.add_widget(stats_button)
 
+        templates_btn = MDRaisedButton(text = '📂 Шаблоны', pos_hint = {'center_x': 0.5})
+        templates_btn.bind(on_release = self.go_to_templates)
+        layout.add_widget(templates_btn)
+
         self.add_widget(layout)
 
     def go_to_training_type(self, instance):
@@ -43,3 +47,6 @@ class MainMenuScreen(MDScreen):
 
     def go_to_stats(self, instance):
         self.manager.current = 'training_stats'
+
+    def go_to_templates(self, instance):
+        self.manager.current = 'training_templates'
