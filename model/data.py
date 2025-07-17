@@ -27,11 +27,34 @@ class TrainingSession:
     def set_type(self, training_type):
         self.type = training_type
 
-    def add_exercise(self, name, reps, sets):
+    def add_exercise(self, name: str, reps, sets:int):
+        """Добавляет упражнение в тренировку
+        - reps: строка вида "15,12,8"
+        - преобразуется в список: [15,12,8]
+        """
+
+        # Проверяем и нормализуем reps
+        if isinstance(reps, (int, float)):
+            reps_list = [int(reps)]
+        # Если reps - строка, пытаемся разбить по запятым
+        elif isinstance(reps, str):
+            reps_list = [int(r.strip()) for r in reps.split(',') if r.strip().isdigit()]
+        # Если reps уже список - оставляем как есть
+        elif isinstance(reps, (list, tuple)):
+            reps_list = [int(r) for r in reps]
+        else:
+            reps_list = [0]  # Значение по умолчанию
+
+        # Проверяем sets
+        try:
+            sets_num = int(sets)
+        except(ValueError, TypeError):
+            sets_num = 1 # Значение по умолчанию
+
         self.exercises.append({
             'name': name,
-            'reps': reps,
-            'sets': sets
+            'reps': reps_list,
+            'sets': sets_num
         })
 
     def reset(self):

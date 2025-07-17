@@ -32,7 +32,9 @@ class TrainingProgramScreen(MDScreen):
         self.name_input = MDTextField(hint_text = "Название упражнения")
         self.main_layout.add_widget(self.name_input)
 
-        self.reps_input = MDTextField(hint_text = 'Повторения (reps)', input_filter = 'int')
+        self.reps_input = MDTextField(hint_text = 'Повторения', input_filter = lambda text, from_undo: text if text in '0123456789,' else "")
+        self.reps_input.helper_text = "Введите повторения через запятую (например: 12,10,8)"
+        self.reps_input.helper_text_mode = "on_focus"
         self.main_layout.add_widget(self.reps_input)
 
         self.sets_input = MDTextField(hint_text = 'Подходы (sets)', input_filter = 'int')
@@ -61,7 +63,7 @@ class TrainingProgramScreen(MDScreen):
         self.main_layout.add_widget(back_btn)
 
         #Кнопка сохранения в шаблон
-        template_btn = MDRaisedButton(text = '💾 Сохранить как шаблон', pos_hint={'center_x':0.5})
+        template_btn = MDRaisedButton(text = 'Сохранить как шаблон', pos_hint={'center_x':0.5})
         template_btn.bind(on_release = self.ask_template_name)
         self.main_layout.add_widget(template_btn)
 
@@ -77,16 +79,41 @@ class TrainingProgramScreen(MDScreen):
 
     def add_exercise(self, instance):
         name = self.name_input.text.strip()
-        reps = self.reps_input.text.strip()
-        sets = self.sets_input.text.strip()
+        reps_input = self.reps_input.text.strip() # Получаем строку с повторениями
+        sets_input = self.sets_input.text.strip()
 
-        if name and reps and sets:
-            print(f"Добавляем упражнение: {name}, {reps} повторений, {sets} подходов")
-            session.add_exercise(name, int(reps), int(sets))
+        if not all([name, reps_input, sets_input]):
+            print("Заполните все поля")
+            return
+
+        try:
+            # Обрабатываем повторения (может быть одно число или несколько через запятую)
+            reps_list = []
+            for r in reps_input.split(','):
+                r_clean = r.strip()
+                if r_clean.isdigit():
+                    reps_list.append(int(r_clean))
+
+            if not reps_list:
+                print("Введите хотя бы одно корректное число повторений")
+                return
+
+            # Обрабатываем подходы (должно быть одно число)
+            sets = int(sets_input)
+
+            print(f"Добавляем упражнение: {name}, {reps_list} повторений, {sets} подходов")
+
+            # Сохраняем в сессию (передаем список повторений и число подходов)
+            session.add_exercise(name, reps_list, sets)
+
+            # Очищаем поля ввода
             self.name_input.text = ''
             self.reps_input.text = ''
             self.sets_input.text = ''
+
             self.refresh_list()
+        except ValueError as e:
+            print(f'Ошибка ввода: {e}')
 
         # Текстовое поле
         exercise_name_input = MDTextField(
@@ -100,7 +127,7 @@ class TrainingProgramScreen(MDScreen):
         menu_items = [{
             'text': name,
             'viewclass': 'OneLineListItem',
-            'on_release': lambda x=name: set_exercise_name(x)
+            'on_release': lambda x=name: self.set_exercise_name(x)
         }
             for name in exercise_names
         ]
@@ -147,8 +174,10 @@ class TrainingProgramScreen(MDScreen):
     def refresh_list(self):
             self.exercise_list.clear_widgets()
             for ex in session.exercises:
+                # Форматируем повторения для отображения
+                reps_str = ', '.join(map(str, ex['reps']))
                 ex_label = MDLabel(
-                    text = f"{ex['name']} - {ex['sets']}×{ex['reps']}",
+                    text = f"{ex['name']} - {ex['sets']}×{reps_str}",
                     halign = 'left'
                 )
                 self.exercise_list.add_widget(ex_label)

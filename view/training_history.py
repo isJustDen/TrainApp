@@ -75,7 +75,11 @@ class TrainingHistoryScreen(MDScreen):
                     name = ex.get('name', 'Без названия')
                     sets = ex.get('sets', '?')
                     reps = ex.get('reps', '?')
-                    text += f" - {name} ({sets}×{reps})\n"
+                    if isinstance(reps, list):
+                        reps_display = ' / '.join(map(str, reps))
+                    else:
+                        reps_display = str(reps)
+                    text += f' - {name} ({reps_display})\n'
             else:
                  text += '- Нет упражнений\n'
 
@@ -110,7 +114,12 @@ class TrainingHistoryScreen(MDScreen):
             name = ex.get('name', 'Без названия')
             sets = ex.get('sets', 0)
             reps = ex.get('reps', 0)
-            session.add_exercise(name, reps, sets)
+            # Преобразуем reps в строку, если это список
+            if isinstance(reps, list):
+                reps_str = ','.join(map(str, reps))
+            else:
+                reps_str = str(reps)
+            session.add_exercise(name, reps_str, sets)
 
         print(f"🔁 Повторяем тренировку: {session}")
         self.manager.current = 'training_program'
