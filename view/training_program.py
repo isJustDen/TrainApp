@@ -7,11 +7,13 @@ from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.textfield import MDTextField
+from requests.compat import has_simplejson
 
 from model.data import session
 from model.exercises import load_exercise_list, save_exercise
 from model.storage import save_session_to_file
-from model.templates import save_template
+from model.templates import save_template, load_templates, get_template_by_name
+from view.timer_widget import TimerWidget
 
 
 #**********************************************************************************************************************#
@@ -66,6 +68,26 @@ class TrainingProgramScreen(MDScreen):
         template_btn = MDRaisedButton(text = 'Сохранить как шаблон', pos_hint={'center_x':0.5})
         template_btn.bind(on_release = self.ask_template_name)
         self.main_layout.add_widget(template_btn)
+
+        # Добавляем таймер
+        self.timer = TimerWidget(duration = 60)
+        self.main_layout.add_widget(self.timer)
+
+        # Добавляем кнопку для выбора из шаблонов
+        self.template_btn = MDRaisedButton(text = 'Добавить из шаблона', pos_hint={'center_x':0.5}, on_release = self.open_template_menu)
+        # Инициализируем меню шаблонов
+        self.template_menu = None
+        self.init_template_menu()
+
+        # Область для кнопок быстрого добавления популярных упражнений
+        self.quick_add_layout = MDBoxLayout(orientation = 'horizontal', size_hint_y = None, height = 50)
+        self.main_layout.add_widget(self.quick_add_layout)
+
+        # Кнопки быстрого добавления популярных упражнений
+        popular_exercises = ["Приседания", "Отжимания", "Подтягивания"]
+        for ex in popular_exercises:
+            btn = MDFlatButton(text = ex, on_release = lambda x, e = ex: self.add_quick_exercise(e))
+            self.quick_add_layout.add_widget(btn)
 
         self.add_widget(self.main_layout)
 
@@ -165,6 +187,7 @@ class TrainingProgramScreen(MDScreen):
         """Устанавливает выбранное упражнение в поле ввода"""
         self.name_input.text = name
         self.menu.dismiss()
+        self.menu.dismiss()
 
     def open_menu(self, instance, value):
         """Открывает меню при фокусе на поле ввода"""
@@ -216,5 +239,71 @@ class TrainingProgramScreen(MDScreen):
         else:
             text_field.error = True
             text_field.helper_text = 'Введите имя шаблона'
-
 #--------------------------------------------------------------------------------------------------------------#
+    def init_template_menu(self):
+        """Инициализирует меню с шаблонами упражнений"""
+        templates = load_templates()
+        menu_items = []
+
+        for template in templates:
+            menu_items.append({
+                'text':template['name'],
+                'viewclass': 'OneLineListItem',
+                'on_release': lambda x=template: self.add_template_exercises(x)
+            })
+
+        self.template_menu = MDDropdownMenu(caller = self.template_btn, items = menu_items, width_mult = 4)
+        menu_items.append({
+            'text': template['name'],
+            'viewclass': 'OneLineIconListItem',
+            'icon': 'dumbbell',
+            'on_release': lambda x=template: self.add_template_exercises(x)
+        })
+    def open_template_menu(self, instance):
+        """Открывает меню с шаблонами"""
+        self.template_menu.open()
+
+    def add_template_menu(self, template):
+        """Добавляет упражнения из выбранного шаблона"""
+        for ex in template('exercises'):
+            session.add_exercise(ex['name'], ex['reps'], ex['sets'])
+            self.refresh_list()
+            self.template_menu.dismiss()
+
+    def edit_template(self, template_name):
+        """Редактирование шаблона"""
+        template = get_template_by_name(template_name)
+        if template:
+            self.load_template(template)
+            # Переходим в режим редактирования
+            self.edit_mode = True
+            self.current_template = template_name
+    #--------------------------------------------------------------------------------------------------------------#
+    def add_quick_exercise(self, name):
+        """Быстрое добавление популярного упражнения"""
+        self.name_input.text = name
+        self.reps_input.text = '12, 10, 8'
+        self.sets_input.text = '3'
+#--------------------------------------------------------------------------------------------------------------#
+    def add_template_exercises(self , template):
+        """Добавляет упражнения из выбранного шаблона в текущую тренировку"""
+        # Проверяем, что шаблон содержит упражнения
+        if 'exercises' not in template:
+            print("Шаблон не содержит упражнений")
+            return
+
+        # Добавляем каждое упражнение из шаблона
+        for exercise in template['exercises']:
+            name = exercise.get('name', '')
+            reps = exercise.get('reps', [])
+            sets = exercise.get('sets', 1)
+
+            session.add_exercise(name, reps, sets) # Добавляем упражнение в текущую сессию
+
+            self.refresh_list()     # Обновляем список упражнений на экране
+
+            # Закрываем меню шаблонов
+            if hasattr(self, 'template_menu'):
+                self.template_menu.dismiss()
+#--------------------------------------------------------------------------------------------------------------#
+

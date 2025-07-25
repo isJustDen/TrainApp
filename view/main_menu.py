@@ -33,7 +33,7 @@ class MainMenuScreen(MDScreen):
         stats_button.bind(on_release = self.go_to_stats)
         layout.add_widget(stats_button)
 
-        templates_btn = MDRaisedButton(text = '📂 Шаблоны', pos_hint = {'center_x': 0.5})
+        templates_btn = MDRaisedButton(text = 'Шаблоны', pos_hint = {'center_x': 0.5})
         templates_btn.bind(on_release = self.go_to_templates)
         layout.add_widget(templates_btn)
 

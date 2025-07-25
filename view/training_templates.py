@@ -66,7 +66,7 @@ class TrainingTemplatesScreen(MDScreen):
             self.templates_box.add_widget(box)
 
     def load_template(self, template_data):
-        """Загружает шаблон в текущую сессию и открывает экран тренировки"""
+        """Загружает шаблон и сразу переходит к редактированию"""
         session.reset()
         session.set_type(template_data.get('type', 'дом'))
 
@@ -74,6 +74,9 @@ class TrainingTemplatesScreen(MDScreen):
             session.add_exercise(ex['name'], ex['reps'], ex['sets'])
 
         self.manager.current = 'training_program'
+        # Автоматически открываем меню шаблонов
+        screen = self.manager.get_screen('training_program')
+        screen.open_template_menu(screen.template_btn)
 
     def go_back(self, instance):
         self.manager.current = 'main_menu'

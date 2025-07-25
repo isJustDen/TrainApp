@@ -35,3 +35,19 @@ def load_templates():
         with open(TEMPLATE_FILE, 'r', encoding= 'UTF-8') as f:
             return json.load(f)
     return []
+
+def get_template_by_name(name):
+    """Возвращает шаблон по имени"""
+    templates = load_templates()
+    for template in templates:
+        if template['name'] == name:
+            return template
+    return None
+
+def delete_template(name):
+    """Удаляет шаблон"""
+    templates = load_templates()
+    templates = [t for t in templates if t['name'] != name]
+
+    with open(TEMPLATE_FILE, 'w', encoding='utf-8') as f:
+        json.dump(templates, f, ensure_ascii=False, endent = 4)
