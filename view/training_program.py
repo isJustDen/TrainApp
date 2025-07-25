@@ -1,4 +1,6 @@
 # ФАЙЛ training_program.py
+from kivy.metrics import dp
+from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRaisedButton, MDFlatButton
 from kivymd.uix.dialog import MDDialog
@@ -7,7 +9,7 @@ from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.textfield import MDTextField
-from requests.compat import has_simplejson
+from kivy.utils import platform
 
 from model.data import session
 from model.exercises import load_exercise_list, save_exercise
@@ -15,81 +17,111 @@ from model.storage import save_session_to_file
 from model.templates import save_template, load_templates, get_template_by_name
 from view.timer_widget import TimerWidget
 
-
 #**********************************************************************************************************************#
 class TrainingProgramScreen(MDScreen):
     def __init__ (self, **kwargs):
         super().__init__(**kwargs)
 
-        self.main_layout = MDBoxLayout(orientation = 'vertical', spacing = 10, padding = 20)
+        # Проверяем мобильную платформу
+        if platform in ('android', 'ios'):
+            self.mobile_adjusments()
 
+        # Главный макет с прокруткой
+        self.main_layout = MDBoxLayout(orientation = 'vertical', spacing = dp(15), padding = dp(20))
+        scroll = MDScrollView()
+        content_layout = MDBoxLayout(orientation = 'vertical', spacing = dp(15), size_hint_y = None)
+        content_layout.bind(minimum_height = content_layout.setter('height'))
+
+
+        # 1. Заголовок
         self.header = MDLabel(
             text = f'Тренировка: {session.type}',
             halign = 'center',
-            font_style = 'H5'
-        )
-        self.main_layout.add_widget(self.header)
+            font_style = 'H5',
+            size_hint_y = None,
+            height = dp(50),)
+        content_layout.add_widget(self.header)
 
-        # Поля для ввода упражнения
+
+        # 2. Поля для ввода упражнения
+        input_layout = MDBoxLayout(orientation = 'vertical', spacing = dp(10), size_hint_y = None)
         self.name_input = MDTextField(hint_text = "Название упражнения")
-        self.main_layout.add_widget(self.name_input)
+        self.reps_input = MDTextField(
+            hint_text = 'Повторение',
+            input_filter = lambda text, from_undo: text if text in "0123456789," else "",
+            helper_text = 'Введите повторения через запятую (Например: 12-10-8)',
+            helper_text_mode = 'on_focus',)
+        self.sets_input = MDTextField(hint_text ='Подходы (sets)', input_filter = 'int')
 
-        self.reps_input = MDTextField(hint_text = 'Повторения', input_filter = lambda text, from_undo: text if text in '0123456789,' else "")
-        self.reps_input.helper_text = "Введите повторения через запятую (например: 12,10,8)"
-        self.reps_input.helper_text_mode = "on_focus"
-        self.main_layout.add_widget(self.reps_input)
+        input_layout.add_widget(self.name_input)
+        input_layout.add_widget(self.reps_input)
+        input_layout.add_widget(self.sets_input)
+        content_layout.add_widget(input_layout)
 
-        self.sets_input = MDTextField(hint_text = 'Подходы (sets)', input_filter = 'int')
-        self.main_layout.add_widget(self.sets_input)
 
-        # Кнопка добавить
-        add_btn = MDRaisedButton(text = 'Добавить упражнения', pos_hint = {'center_x': 0.5})
-        add_btn.bind(on_release = self.add_exercise)
-        self.main_layout.add_widget(add_btn)
+        # 3. Кнопки действий
+        action_scroll = MDScrollView(size_hint_y = None, height=dp(100))
+        self.action_button = MDBoxLayout(
+            orientation = 'vertical',
+            size_hint_y =None,
+            spacing = dp(10),
+            height = self.calculate_action_height())
+        self.add_btn = MDRaisedButton(text = 'Добавить упражнения', size_hint = (1, None), height = dp(48))
+        self.add_btn.bind(on_release = self.add_exercise)
+        self.template_btn = MDRaisedButton(text='Добавить из шаблона', pos_hint={'center_x': 0.5})
+        self.template_btn.bind(on_release=self.open_template_menu)
 
-        # Список добавленных упражнений
-        self.exercise_list = MDBoxLayout(orientation = 'vertical', size_hint_y =None)
+        self.action_button.add_widget(self.add_btn)
+        self.action_button.add_widget(self.template_btn)
+        action_scroll.add_widget(self.action_button)
+
+
+        # 4. Список упражнений
+        self.exercise_list = MDBoxLayout(orientation = 'vertical', size_hint_y =None, spacing = dp(10))
         self.exercise_list.bind(minimum_height = self.exercise_list.setter('height'))
+        content_layout.add_widget(self.exercise_list)
 
-        scroll = MDScrollView()
-        scroll.add_widget(self.exercise_list)
+
+        # 5. Нижняя панель с таймером и кнопками
+        self.buttom_panel = MDBoxLayout(orientation = 'vertical', spacing = dp(10), size_hint_y = None)
+        # Таймер
+        self.timer = TimerWidget(duration=60, size_hint_y = None, height = dp(100))
+        self.buttom_panel.add_widget(self.timer)
+
+
+        # Кнопки сохранения/назад
+        save_back_layout = MDBoxLayout(orientation = 'vertical', spacing = dp(10), size_hint_y = None, height = dp(50))
+        save_btn = MDRaisedButton(text = 'Сохранить', pos_hint = {'center_x' :0.5})
+        save_btn.bind(on_release = self.save_session)
+        back_btn = MDRaisedButton (text = 'Назад', pos_hint = {'center_x': 0.5})
+        back_btn.bind(on_release = self.go_back)
+
+        save_back_layout.add_widget(back_btn)
+        save_back_layout.add_widget(save_btn)
+        self.buttom_panel.add_widget(save_back_layout)
+
+        content_layout.add_widget(self.buttom_panel)
+        scroll.add_widget(content_layout)
         self.main_layout.add_widget(scroll)
 
-        # Кнопка сохранить (пока просто лог)
-        save_btn = MDRaisedButton(text = 'Сохранить тренировку', pos_hint = {'center_x' :0.5})
-        save_btn.bind(on_release = self.save_session)
-        self.main_layout.add_widget(save_btn)
-
-        back_btn = MDRaisedButton (text = 'Назад к истории', pos_hint = {'center_x': 0.5})
-        back_btn.bind(on_release = self.go_back)
-        self.main_layout.add_widget(back_btn)
-
-        #Кнопка сохранения в шаблон
-        template_btn = MDRaisedButton(text = 'Сохранить как шаблон', pos_hint={'center_x':0.5})
-        template_btn.bind(on_release = self.ask_template_name)
-        self.main_layout.add_widget(template_btn)
-
-        # Добавляем таймер
-        self.timer = TimerWidget(duration = 60)
-        self.main_layout.add_widget(self.timer)
-
-        # Добавляем кнопку для выбора из шаблонов
-        self.template_btn = MDRaisedButton(text = 'Добавить из шаблона', pos_hint={'center_x':0.5}, on_release = self.open_template_menu)
-        # Инициализируем меню шаблонов
-        self.template_menu = None
-        self.init_template_menu()
-
-        # Область для кнопок быстрого добавления популярных упражнений
-        self.quick_add_layout = MDBoxLayout(orientation = 'horizontal', size_hint_y = None, height = 50)
-        self.main_layout.add_widget(self.quick_add_layout)
-
-        # Кнопки быстрого добавления популярных упражнений
+        # Быстрое добавление упражнений
+        self.quick_add_layout = MDBoxLayout(orientation = 'horizontal', spacing = dp(5), size_hint_y = None, height=dp(50))
         popular_exercises = ["Приседания", "Отжимания", "Подтягивания"]
         for ex in popular_exercises:
-            btn = MDFlatButton(text = ex, on_release = lambda x, e = ex: self.add_quick_exercise(e))
+            btn = MDFlatButton(text = ex, size_hint_x = None, width=dp(100))
+            btn.bind(on_release = lambda x, e = ex: self.add_quick_exercise(e))
             self.quick_add_layout.add_widget(btn)
 
+        self.main_layout.add_widget(self.quick_add_layout)
         self.add_widget(self.main_layout)
+
+        # Инициализация меню шаблонов
+        self.template_menu = None
+        self.template_btn = None
+
+
+        self.init_template_menu()
+
 
     def on_pre_enter(self, *args):
         if not session.type:
@@ -252,16 +284,24 @@ class TrainingProgramScreen(MDScreen):
                 'on_release': lambda x=template: self.add_template_exercises(x)
             })
 
+        # Создаем кнопку, которая будет вызывать меню
+        self.template_btn = MDRaisedButton(
+            text = 'Добавить из шаблона',
+            pos_hint = {'center_x': 0.5},
+            on_release = self.open_template_menu
+        )
+        # Создаем само меню
         self.template_menu = MDDropdownMenu(caller = self.template_btn, items = menu_items, width_mult = 4)
-        menu_items.append({
-            'text': template['name'],
-            'viewclass': 'OneLineIconListItem',
-            'icon': 'dumbbell',
-            'on_release': lambda x=template: self.add_template_exercises(x)
-        })
+
+        # Добавляем кнопку в интерфейс
+        if not hasattr(self, 'template_btn_added'):
+            self.main_layout.add_widget(self.template_btn)
+            self.template_btn_added = True
+
     def open_template_menu(self, instance):
         """Открывает меню с шаблонами"""
-        self.template_menu.open()
+        if hasattr(self, 'template_menu') and self.template_menu:
+            self.template_menu.open()
 
     def add_template_menu(self, template):
         """Добавляет упражнения из выбранного шаблона"""
@@ -307,3 +347,27 @@ class TrainingProgramScreen(MDScreen):
                 self.template_menu.dismiss()
 #--------------------------------------------------------------------------------------------------------------#
 
+    def mobile_adjustments(self):
+        """Настройки для мобильных устройств"""
+        app = MDApp.get_running_app()
+        padding = app.mobile_styles['padding']
+        spacing = app.mobile_styles['spacing']
+
+        self.main_layout.padding = [padding, padding]
+        self.main_layout.spacing = spacing
+
+        # Уменьшаем размер шрифтов для мобильных устройств
+        self.header.font_style = 'H6'
+        for child in self.exercise_list.children:
+            if isinstance(child, MDLabel):
+                child.font_style = 'Body1'
+
+#--------------------------------------------------------------------------------------------------------------#
+    def calculate_action_height(self):
+        '''Задаёт высоту кнопок'''
+        button_height = dp(48)# Высота одной кнопк
+        spacing = dp(10)# Отступ между кнопками
+        padding = dp(10)*2# Внутренние отступы контейнер
+        num_buttons = 3 # Количество кнопок (например: Добавить, Шаблоны, Таймер)
+        return (button_height*num_buttons)+(spacing * (num_buttons-1)+padding)
+#--------------------------------------------------------------------------------------------------------------#

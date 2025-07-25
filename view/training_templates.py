@@ -15,7 +15,7 @@ class TrainingTemplatesScreen(MDScreen):
         self.layout = MDBoxLayout(orientation = 'vertical', padding = 20, spacing = 10)# Главный вертикальный контейнер
 
         # Заголовок
-        self.title = MDLabel(text = '📂 Шаблоны тренировок', halign = 'center', font_style = 'H5')
+        self.title = MDLabel(text = 'Шаблоны тренировок', halign = 'center', font_style = 'H5')
         self.layout.add_widget(self.title)
 
         # Область прокрутки
@@ -76,7 +76,9 @@ class TrainingTemplatesScreen(MDScreen):
         self.manager.current = 'training_program'
         # Автоматически открываем меню шаблонов
         screen = self.manager.get_screen('training_program')
-        screen.open_template_menu(screen.template_btn)
+        screen.refresh_list()
+        if hasattr(screen, 'template_menu') and screen.template_menu:
+            screen.template_menu.open()
 
     def go_back(self, instance):
         self.manager.current = 'main_menu'
