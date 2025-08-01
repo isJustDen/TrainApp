@@ -48,7 +48,10 @@ class TrainingStatsScreen(MDScreen):
         sessions = load_all_sessions()
 
         if not sessions:
-            self.stats_box.add_widget(MDLabel(text = 'Нет данных для анализа', halign = 'center', theme_text_color = 'Secondary'))
+            self.stats_box.add_widget(MDLabel(
+                text = 'Нет данных для анализа',
+                halign = 'center',
+                theme_text_color = 'Secondary'))
             return
 
         # Используем словарь: дата -> общее количество подходов

@@ -1,8 +1,9 @@
 #view/timer_widget.py
-
+from kivy.metrics import dp
 from kivy.properties import NumericProperty, BooleanProperty, StringProperty
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
+from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRaisedButton, MDFlatButton
 from kivymd.uix.label import MDLabel
 from kivymd.uix.menu import MDDropdownMenu
@@ -25,11 +26,21 @@ class TimerWidget(BoxLayout):
 
     def _create_ui(self):
         """Создает элементы интерфейса таймера"""
-        # Верхняя панель с кнопками выбора времени
+        # Главный контейнер таймера
+        self.orientation = 'horizontal'
+        self.spacing = dp(5)
+        self.size_hint = (1, None)
+        self.height = dp(48)
+        self.padding = [dp(5), dp(5)]
+
+        # Кнопка выбора времени
         self.time_select_btn = MDRaisedButton(
-            text=f'Таймер: {self._format_time(self.total_time)}',
+            text=f'{self._format_time(self.total_time)}',
             size_hint=(1, None),
-            height='48dp'
+            width = dp(70),
+            height=dp(80),
+            theme_text_color = 'Custom',
+            #text_color = (1, 1, 1, 1)
         )
         self.time_select_btn.bind(on_release = self.open_time_menu)
         self.add_widget(self.time_select_btn)
@@ -38,22 +49,46 @@ class TimerWidget(BoxLayout):
         self.label = MDLabel(
             text = self._format_time(self.time_left),
             halign='center',
-            font_style='H4',
-            size_hint=(1, 0.7)
+            font_style='Subtitle2',
+            size_hint=(0.5, 1),
+            theme_text_color='Custom',
+           # text_color=(1, 1, 1, 1)
         )
         self.add_widget(self.label)
 
         # Панель управления (старт/сброс)
-        btn_layout = BoxLayout(size_hint=(1, None), height='48dp', spacing=10)
-        self.start_button = MDRaisedButton(text = 'Старт')
+        self.btn_layout = MDBoxLayout(
+            orientation = 'horizontal',
+            size_hint=(None, 1),
+            width=dp(120),
+            spacing=5
+        )
+
+        self.start_button = MDRaisedButton(
+            text = 'Старт',
+            size_hint = (1, None),
+            theme_text_color = 'Custom',
+            width=dp(70),
+            height=dp(80),
+            #text_color = (1, 1, 1, 1)
+        )
         self.start_button.bind(on_release=self.toggle_timer)
 
-        self.reset_button = MDFlatButton(text = 'Сброс')
+        self.reset_button = MDFlatButton(
+            text = 'Сброс',
+            size_hint=(1, 1),
+            # theme_text_color='Custom',
+            #text_color=(1, 1, 1, 1)
+        )
         self.reset_button.bind(on_release=self.reset_timer)
 
-        btn_layout.add_widget(self.start_button)
-        btn_layout.add_widget(self.reset_button)
-        self.add_widget(btn_layout)
+        self.btn_layout.add_widget(self.start_button)
+        self.btn_layout.add_widget(self.reset_button)
+        self.add_widget(self.btn_layout)
+
+        # self.add_widget(self.start_button)
+        # self.add_widget(self.reset_button)
+
 
     def _init_time_menu(self):
         """Инициализирует меню выбора времени"""

@@ -64,5 +64,9 @@ class TrainingSession:
     def __repr__(self):
         return f'<Тренировка: {self.type}, {len(self.exercises)} упражнений>'
 
+    def clear_exercises(self):
+        """Очищает список упражнений в текущей сессии"""
+        self.exercises = []
+
 session = TrainingSession()
 print("Загруженные тренировки:", session)
